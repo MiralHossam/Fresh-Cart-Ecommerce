@@ -25,7 +25,6 @@ export default function Categories() {
   const [activeCategory, setActiveCategory] = useState<Category | null>(null);
   const [subCategories, setSubCategories] = useState<SubCategory[]>([]);
   const [subLoading, setSubLoading] = useState(false);
-  const [showScroll, setShowScroll] = useState(false);
 
   const subRef = useRef<HTMLDivElement>(null);
 
@@ -44,15 +43,6 @@ export default function Categories() {
       }
     }
     fetchCategories();
-  }, []);
-
-  // 👇 show scroll-to-top button when user scrolls 300px
-  useEffect(() => {
-    const handleScroll = () => {
-      setShowScroll(window.scrollY > 300);
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   async function fetchSubCategories(category: Category) {
@@ -148,7 +138,6 @@ export default function Categories() {
         </div>
       )}
 
-      {/* 🔼 Scroll to Top Button */}
       <ScrollToTop />
     </div>
   );

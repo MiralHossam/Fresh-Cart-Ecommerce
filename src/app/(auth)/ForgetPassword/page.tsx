@@ -30,7 +30,7 @@ export default function ForgetPassword() {
       email: '',
     },
     resolver: zodResolver(SchemaForgetPassword),
-    mode: 'onChange', // ✅ enables live validation
+    mode: 'onChange', 
   })
 
   async function handleForgetPassword(values: z.infer<typeof SchemaForgetPassword>) {
@@ -84,7 +84,6 @@ export default function ForgetPassword() {
             )}
           />
 
-          {/* ✅ Button with disabled + spinner */}
           <Button
             type="submit"
             className="w-full bg-main text-white p-4

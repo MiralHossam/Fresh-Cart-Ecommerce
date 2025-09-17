@@ -1,33 +1,58 @@
-'use client'
+"use client";
+
+import React, { createContext, useContext, useState, useEffect } from "react";
 import { getCartData } from "@/CartAction/CartAction";
-import { getUserToken } from "@/getUserToken";
-import { createContext, useEffect, useState } from "react";
-import { product } from '@/types/product.type';
+import { getWishlistData } from "@/WishlistAction/WishlistAction";
 
-
-type ContextType = {
-  count:number,
-  setCount: React.Dispatch<React.SetStateAction<number>>
+interface CountContextType {
+  cartCount: number;
+  wishlistCount: number;
+  refreshCounters: () => void;
 }
 
-export const CountContext = createContext<ContextType | null>(null)
+const CountContext = createContext<CountContextType>({
+  cartCount: 0,
+  wishlistCount: 0,
+  refreshCounters: () => {},
+});
 
-export default function CountProvider({children}:{children: React.ReactNode}) {
-  const [count , setCount] = useState(0)
-  async function getCart(){
-    const token = await getUserToken()
-    if (token){
-      const data: cartData = await getCartData()
-      const sum = data.data.products:reduce((total, item) => total += item.count, 0)
-      setCount(sum)
+export function CountProvider({ children }: { children: React.ReactNode }) {
+  const [cartCount, setCartCount] = useState(0);
+  const [wishlistCount, setWishlistCount] = useState(0);
+
+  async function refreshCounters() {
+    try {
+      const cartRes = await getCartData();
+      setCartCount(
+        Array.isArray(cartRes?.data?.products)
+          ? cartRes.data.products.reduce((acc, item) => acc + (item.count ?? 0), 0)
+          : 0
+      );
+
+      const wishlistRes = await getWishlistData();
+      const wishlistArray = Array.isArray(wishlistRes)
+        ? wishlistRes
+        : Array.isArray(wishlistRes?.data)
+        ? wishlistRes.data
+        : [];
+      setWishlistCount(wishlistArray.length);
+    } catch {
+      setCartCount(0);
+      setWishlistCount(0);
     }
   }
-useEffect(() => {
-  getCart();
-}, []);
+
+  useEffect(() => {
+    refreshCounters();
+  }, []);
+
   return (
-    <CountContext.Provider value={{ count, setCount}}>
+    <CountContext.Provider value={{ cartCount, wishlistCount, refreshCounters }}>
       {children}
     </CountContext.Provider>
-  )
+  );
+}
+
+export function useCount() {
+  return useContext(CountContext);
 }

@@ -1,184 +1,66 @@
-// // "use client";
+"use client";
 
-// // import { useState, useEffect } from "react";
-// // import { useSession } from "next-auth/react";
-// // import { toast } from "sonner";
-// // import {
-// //   addToWishlist,
-// //   getWishlistData,
-// //   removeFromWishlist,
-// // } from "@/WishlistAction/WishlistAction";
+import { useEffect, useState } from "react";
+import { addToWishlist, getWishlistData, removeFromWishlist } from "@/WishlistAction/WishlistAction";
+import { toast } from "sonner";
+import { useCount } from "@/types/CountProvider";
 
-// // interface Props {
-// //   productId: string;
-// //   variant?: "card" | "inline";
-// // }
+interface AddWishlistBtnProps {
+  id: string;
+  className?: string;
+  hoverSlide?: boolean; 
+}
 
-// // export default function AddWishlistBtn({ productId, variant = "card" }: Props) {
-// //   const { status } = useSession();
-// //   const [isWishlisted, setIsWishlisted] = useState(false);
-// //   const [loading, setLoading] = useState(true);
+export default function AddWishlistBtn({ id, className, hoverSlide = false }: AddWishlistBtnProps) {
+  const [inWishlist, setInWishlist] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const { refreshCounters } = useCount();
 
-// //   useEffect(() => {
-// //     async function checkWishlist() {
-// //       if (status !== "authenticated") {
-// //         setLoading(false);
-// //         return;
-// //       }
-// //       try {
-// //         const res = await getWishlistData();
-// //         const isProductWishlisted = res.data.some(
-// //           (item: { _id: string }) => item._id === productId
-// //         );
-// //         setIsWishlisted(isProductWishlisted);
-// //       } catch (err) {
-// //         console.error("Error checking wishlist:", err);
-// //       } finally {
-// //         setLoading(false);
-// //       }
-// //     }
-// //     checkWishlist();
-// //   }, [productId, status]);
+  useEffect(() => {
+    async function check() {
+      try {
+        const data = await getWishlistData();
+        const wishlistArray = Array.isArray(data?.data) ? data.data : [];
+        setInWishlist(wishlistArray.some((item: { _id: string; }) => item._id === id));
+      } catch {}
+    }
+    check();
+  }, [id]);
 
-// //   const toggleWishlist = async () => {
-// //     if (status !== "authenticated") {
-// //       toast.error("Please log in to manage your wishlist");
-// //       return;
-// //     }
-// //     try {
-// //       if (isWishlisted) {
-// //         await removeFromWishlist(productId);
-// //         setIsWishlisted(false);
-// //         toast.success("Removed from wishlist");
-// //       } else {
-// //         await addToWishlist(productId);
-// //         setIsWishlisted(true);
-// //         toast.success("Added to wishlist");
-// //       }
-// //       // ✅ no need to call refreshCounts() manually
-// //     } catch (err) {
-// //       const errorMessage =
-// //         err instanceof Error ? err.message : "An error occurred";
-// //       toast.error(errorMessage);
-// //     }
-// //   };
+  async function toggleWishlist() {
+    setLoading(true);
+    try {
+      if (inWishlist) {
+        await removeFromWishlist(id);
+        toast.success("Removed from Wishlist");
+      } else {
+        await addToWishlist(id);
+        toast.success("Added to Wishlist");
+      }
+      setInWishlist(!inWishlist);
+      refreshCounters();
+    } catch {
+      toast.error("Please login first");
+    } finally {
+      setLoading(false);
+    }
+  }
 
-// //   if (status === "loading" || loading) {
-// //     return (
-// //       <button
-// //         className={`text-2xl transition-transform duration-200 hover:scale-110
-// //           ${
-// //             variant === "card"
-// //               ? "absolute top-3 right-[-40px] group-hover:right-3 transition-all z-20"
-// //               : "ml-2"
-// //           }`}
-// //         disabled
-// //       >
-// //         <i className="fa-regular fa-heart text-red-500" />
-// //       </button>
-// //     );
-// //   }
-
-// //   return (
-// //     <button
-// //       onClick={toggleWishlist}
-// //       className={`text-2xl transition-transform duration-200 hover:scale-110
-// //         ${
-// //           variant === "card"
-// //             ? "absolute top-3 right-[-40px] group-hover:right-3 transition-all z-20"
-// //             : "ml-2"
-// //         }`}
-// //       disabled={status !== "authenticated"}
-// //     >
-// //       {isWishlisted ? (
-// //         <i className="fa-solid fa-heart text-red-500" />
-// //       ) : (
-// //         <i className="fa-regular fa-heart text-red-500" />
-// //       )}
-// //     </button>
-// //   );
-// // }
-
-
-
-
-
-
-// "use client";
-
-// import { useState, useEffect } from "react";
-// import { toast } from "sonner";
-// // import {
-// //   addToWishlist,
-// //   removeFromWishlist,
-// //   getWishlistData,
-// // } from "@/WishlistAction/WishlistAction";
-// // import { useCount } from "@/types/CountProvider";
-
-// interface Props {
-//   productId: string;
-//   variant?: "card" | "inline";
-// }
-
-// export default function WishlistBtn({ productId, variant = "card" }: Props) {
-//   const [loading, setLoading] = useState(false);
-//   const [isInWishlist, setIsInWishlist] = useState(false);
-//   // const { refreshCounts } = useCount();
-
-//   useEffect(() => {
-//     const checkWishlist = async () => {
-//       const res = await getWishlistData();
-//       const items = res.data?.data ?? [];
-//       setIsInWishlist(items.some((item) => item.product._id === productId));
-//     };
-//     checkWishlist();
-//   }, [productId]);
-
-//   const handleWishlist = async () => {
-//     try {
-//       setLoading(true);
-//       if (isInWishlist) {
-//         const res = await removeFromWishlist(productId);
-//         if (res?.status === "success") {
-//           setIsInWishlist(false);
-//           await refreshCounts();
-//           toast.success("Removed from wishlist");
-//         } else {
-//           toast.error(res.message || "Failed to remove");
-//         }
-//       } else {
-//         const res = await addToWishlist(productId);
-//         if (res?.status === "success") {
-//           setIsInWishlist(true);
-//           await refreshCounts();
-//           toast.success("Added to wishlist");
-//         } else {
-//           toast.error(res.message || "Failed to add");
-//         }
-//       }
-//     } catch (error) {
-//       const msg = error instanceof Error ? error.message : "Something went wrong";
-//       toast.error(msg);
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   return (
-//     <button
-//       onClick={handleWishlist}
-//       disabled={loading}
-//       className={`text-2xl transition-transform duration-200 hover:scale-110 ${
-//         variant === "card"
-//           ? "absolute top-3 right-[-40px] group-hover:right-3 transition-all z-20"
-//           : "ml-2"
-//       }`}
-//     >
-//       {isInWishlist ? (
-//         <i className="fa-solid fa-heart text-red-500" />
-//       ) : (
-//         <i className="fa-regular fa-heart text-red-500" />
-//       )}
-//     </button>
-//   );
-// }
+  return (
+    <button
+      onClick={e => {
+        e.preventDefault();
+        toggleWishlist();
+      }}
+      disabled={loading}
+      className={`
+        text-xl transition-transform duration-300
+        ${inWishlist ? "text-red-500" : "text-gray-500"}
+        ${hoverSlide ? "absolute top-2 right-2 translate-x-8 opacity-0 group-hover:translate-x-0 group-hover:opacity-100" : ""}
+        ${className || ""}
+      `}
+    >
+      <i className={`fa-heart ${inWishlist ? "fa-solid" : "fa-regular"}`} />
+    </button>
+  );
+}

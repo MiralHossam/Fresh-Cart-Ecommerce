@@ -49,13 +49,13 @@ export default function ProductSlider({ images }: { images: string[] }) {
     <div className="relative w-full">
       <Slider {...settings}>
         {images.map((image, index) => (
-          <div key={index} className="relative w-full h-[400px]"> {/* Fixed height */}
+          <div key={index} className="relative w-full h-[400px]"> 
             <Image
               src={image}
               alt={`product-${index}`}
               fill
               className="object-cover rounded-xl"
-              priority={index === 0} // First image for LCP
+              priority={index === 0} 
             />
           </div>
         ))}

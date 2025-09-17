@@ -5,7 +5,6 @@ import { HomeLoading } from "../../_Component/HomeLoading/HomeLoading";
 import { product, ProductData } from "@/types/product.type";
 import ProductCard from "@/app/_Component/ProductCard/ProductCard";
 import ScrollToTop from "@/app/_Component/ScrollToTop/ScrollToTop";
-// import ScrollToTop from "@/app/_Component/ScrollToTop"; // ⬅️ your arrow component
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<product[]>([]);
@@ -47,7 +46,7 @@ export default function ProductsPage() {
 
   return (
     <div className="max-w-7xl mx-auto p-6min-h-screen relative">
-      {/* 🔎 Search Bar */}
+      {/* Search Bar */}
       <div className="mb-8 flex justify-center">
         <div className="relative w-full max-w-lg">
           {/* Green circular search icon */}
@@ -71,7 +70,7 @@ export default function ProductsPage() {
         </div>
       </div>
 
-      {/* 🛍️ Products Grid */}
+      {/*  Products Grid */}
       {filteredProducts.length === 0 ? (
         <p className="text-center text-gray-500">No products found.</p>
       ) : (
@@ -82,7 +81,7 @@ export default function ProductsPage() {
         </div>
       )}
 
-      {/* 🔼 Scroll to Top Button */}
+      {/*  Scroll to Top Button */}
       <ScrollToTop />
     </div>
   );

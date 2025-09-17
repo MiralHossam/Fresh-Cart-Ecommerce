@@ -18,7 +18,6 @@ export default function Brands() {
   const [brands, setBrands] = useState<Brand[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedBrand, setSelectedBrand] = useState<Brand | null>(null);
-  const [showScroll, setShowScroll] = useState(false);
 
   useEffect(() => {
     async function fetchBrands() {
@@ -35,15 +34,6 @@ export default function Brands() {
       }
     }
     fetchBrands();
-  }, []);
-
-  // 👇 show scroll-to-top when user scrolls
-  useEffect(() => {
-    const handleScroll = () => {
-      setShowScroll(window.scrollY > 300);
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   if (loading) return <HomeLoading />;
@@ -85,11 +75,11 @@ export default function Brands() {
       {selectedBrand && (
         <div
           className="fixed inset-0 bg-black/30 backdrop-blur-sm flex justify-center items-center z-50"
-          onClick={() => setSelectedBrand(null)} // close on overlay click
+          onClick={() => setSelectedBrand(null)} 
         >
           <div
             className="bg-white rounded-2xl shadow-2xl p-6 max-w-md w-full relative"
-            onClick={(e) => e.stopPropagation()} // prevent close on modal click
+            onClick={(e) => e.stopPropagation()} 
           >
             {/* Close button */}
             <button

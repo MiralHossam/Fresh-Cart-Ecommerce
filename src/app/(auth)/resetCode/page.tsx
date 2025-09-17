@@ -38,7 +38,7 @@ export default function ResetCode() {
       resetCode: "",
     },
     resolver: zodResolver(SchemaresetCode),
-    mode: "onChange", // ✅ live validation
+    mode: "onChange", 
   });
 
   async function handleresetCode(values: z.infer<typeof SchemaresetCode>) {

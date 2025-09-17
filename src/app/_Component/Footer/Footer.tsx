@@ -9,7 +9,6 @@ export default function Footer() {
     <footer className="bg-gray-100 text-gray-800 py-10 mt-10">
       <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-4 gap-10 text-center md:text-left">
         
-        {/* Logo + Slogan */}
         <div>
           <Image
             src="/images/freshcart-logo.svg"
@@ -23,7 +22,6 @@ export default function Footer() {
           </p>
         </div>
 
-        {/* Categories */}
         <div>
           <h4 className="text-xl font-bold mb-4">Categories</h4>
           <ul className="space-y-2">
@@ -45,7 +43,6 @@ export default function Footer() {
           </ul>
         </div>
 
-        {/* Quick Links */}
         <div>
           <h4 className="text-xl font-bold mb-4">Quick Links</h4>
           <ul className="space-y-2">
@@ -67,7 +64,6 @@ export default function Footer() {
           </ul>
         </div>
 
-        {/* Socials */}
         <div>
           <h4 className="text-xl font-bold mb-4">Follow Us</h4>
           <div className="flex justify-center md:justify-start space-x-6 text-2xl">
@@ -96,7 +92,6 @@ export default function Footer() {
         </div>
       </div>
 
-      {/* Bottom bar */}
       <div className="text-center text-sm text-gray-600 mt-10 border-t border-gray-300 pt-4">
         © {new Date().getFullYear()} FreshCart. All rights reserved.
       </div>

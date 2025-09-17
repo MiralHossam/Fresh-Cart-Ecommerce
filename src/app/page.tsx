@@ -17,7 +17,6 @@ export default async function Home() {
   const data: ProductData = await res.json();
   const productList: product[] = data.data;
 
-  // ✅ Fetch Categories
   const catRes = await fetch(
     "https://ecommerce.routemisr.com/api/v1/categories" );
   const catData = await catRes.json();
@@ -25,13 +24,13 @@ export default async function Home() {
 
   return (
     <>
-      {/* ✅ Main Slider */}
+      {/*  Main Slider */}
       <MainSlider />
 
-      {/* ✅ Categories Section with imported component */}
+      {/*  Categories Section with imported component */}
       <CategorySlider categories={categories} />
 
-      {/* ✅ Products Section */}
+      {/*  Products Section */}
       <section className="w-11/12 mx-auto">
         <Suspense fallback={<HomeLoading />}>
           <div className="grid lg:grid-cols-4 md:grid-cols-4 sm:grid-cols-2 grid-cols-1 gap-6">

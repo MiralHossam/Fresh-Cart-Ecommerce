@@ -3,14 +3,22 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
-import type { Cart, CartData } from "@/types/cart.type";
-import { clearCart, getCartData, removeProduct, updateProductQuantity } from "@/CartAction/CartAction";
+import type { Cart } from "@/types/cart.type"; // keep it, remove eslint-disable-next-line
+import {
+  clearCart,
+  getCartData,
+  removeProduct,
+  updateProductQuantity,
+} from "@/CartAction/CartAction";
 import { toast } from "sonner";
 import Link from "next/link";
 
 export default function Cart() {
   const [cartLoading, setCartLoading] = useState(true);
   const [cart, setCart] = useState<Cart>();
+  const [updatingIds, setUpdatingIds] = useState<{ [key: string]: boolean }>(
+    {}
+  );
 
   useEffect(() => {
     getAllCartData();
@@ -18,72 +26,104 @@ export default function Cart() {
 
   async function getAllCartData() {
     setCartLoading(true);
-    const data: CartData = await getCartData();
-    setCart(data.data);
-    setCartLoading(false);
-  }
-
-  async function deleteProduct(id: string){
-    const data = await removeProduct(id)
-    if (data.status == 'success'){
-      toast.success("Product Deleted")
-      setCart(data.data); 
-    }    
-
-  }
-
-  async function clearCartData(){
-    const data = await clearCart()
-    if (data.status == 'success'){
-      getAllCartData(); 
-    }    
-
-  }
-
-  async function updateProductCount(id: string, count: number){
-    const data = await updateProductQuantity(id, count)
-    if (data.status == 'success'){
-        setCart(data.data)
+    try {
+      const response = await getCartData();
+      if (response.data) {
+        setCart(response.data as Cart); 
+      }
+    } finally {
+      setCartLoading(false);
     }
-
   }
 
+  async function deleteProduct(id: string) {
+    const response = await removeProduct(id);
+    if (response.success) {
+      toast.success("Product Deleted", { position: "bottom-right" });
+      setCart((prev) =>
+        prev
+          ? { ...prev, products: prev.products.filter((p) => p._id !== id) }
+          : undefined
+      );
+    }
+  }
 
-return (
-  <div className="max-w-4xl mx-auto p-5">
-    <h1 className="text-2xl font-bold mb-6">Shopping Cart</h1>
+  async function clearCartData() {
+    const response = await clearCart();
+    if (response.success) {
+      toast.success("Cart Cleared", { position: "bottom-right" });
+      getAllCartData();
+    }
+  }
 
-    {cartLoading ? (
-      <h1 className="text-2xl font-bold mb-6">Loading...</h1>
-    ) : !cart || cart.products.length === 0 ? (
-      <p>Your cart is empty</p>
-    ) : (
-      <div className="overflow-x-auto relative shadow-md sm:rounded-lg">
-        <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400 table-auto">
-          <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+  async function updateProductCount(id: string, count: number) {
+    setUpdatingIds((prev) => ({ ...prev, [id]: true }));
+    try {
+      const response = await updateProductQuantity(id, count);
+      if (response.success && cart) {
+        setCart({
+          ...cart,
+          products: cart.products.map((p) =>
+            p._id === id ? { ...p, count } : p
+          ),
+        });
+      }
+    } finally {
+      setUpdatingIds((prev) => ({ ...prev, [id]: false }));
+    }
+  }
+
+  const totalItems =
+    cart?.products.reduce((acc, item) => acc + item.count, 0) ?? 0;
+  const totalPrice = cart?.totalCartPrice ?? 0;
+
+  if (cartLoading) return <h2 className="text-xl">Loading...</h2>;
+
+  if (!cart || cart.products.length === 0)
+    return (
+      <p className="text-center text-gray-500 mt-10">Your cart is empty.</p>
+    );
+
+  return (
+    <div className="max-w-5xl mx-auto p-5">
+      <div className="bg-white shadow-md rounded-xl p-5 mb-6 flex justify-between items-center">
+        <div>
+          <p className="text-gray-600">
+            <span className="font-semibold">Items:</span> {totalItems}
+          </p>
+          <p className="text-gray-900 text-lg font-semibold">
+            Total: {totalPrice} EGP
+          </p>
+        </div>
+        <div className="flex gap-3">
+          <Button
+            className="bg-red-600 hover:bg-red-700 text-white"
+            onClick={clearCartData}
+          >
+            Clear Cart
+          </Button>
+          <Button className="bg-green-600 hover:bg-green-700 text-white">
+            <Link href={`/checkoutsession/${cart._id}`}>Checkout</Link>
+          </Button>
+        </div>
+      </div>
+
+      <div className="overflow-x-auto shadow-md rounded-xl">
+        <table className="w-full text-sm text-left text-gray-600 bg-white rounded-xl">
+          <thead className="text-xs text-gray-700 uppercase bg-gray-100">
             <tr>
-              <th scope="col" className="py-3 px-6">
-                Image
-              </th>
-              <th scope="col" className="py-3 px-6">
-                Product
-              </th>
-              <th scope="col" className="py-3 px-6">
-                Qty
-              </th>
-              <th scope="col" className="py-3 px-6">
-                Price
-              </th>
-              <th scope="col" className="py-3 px-6">
-                Action
-              </th>
+              <th className="py-3 px-6">Image</th>
+              <th className="py-3 px-6">Product</th>
+              <th className="py-3 px-6">Qty</th>
+              <th className="py-3 px-6">Price</th>
+              <th className="py-3 px-6">Action</th>
             </tr>
           </thead>
           <tbody>
             {cart.products.map((item) => (
               <tr
                 key={item._id}
-                className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
+                className="border-b hover:bg-gray-50 transition"
               >
                 <td className="py-4 px-6">
                   <Image
@@ -91,46 +131,47 @@ return (
                     alt={item.product.title}
                     width={80}
                     height={80}
-                    className="w-16 md:w-32 rounded"
+                    className="w-16 md:w-24 rounded"
                   />
                 </td>
-                <td className="py-4 px-6 font-semibold text-gray-900 dark:text-white">
-                  {item.product.title}
-                </td>
+                <td className="py-4 px-6 font-medium">{item.product.title}</td>
                 <td className="py-4 px-6">
                   <div className="flex items-center">
-                    <Button
-                      className="inline-flex items-center justify-center p-1 me-3 text-sm font-medium h-6 w-6 text-gray-500 bg-white border border-gray-300 rounded-full"
+                    <button
+                      className="h-6 w-6 flex items-center justify-center text-gray-700 border border-gray-300 rounded-full bg-white disabled:opacity-50"
                       onClick={() =>
-                        updateProductCount(item.product._id, item.count -= 1)
+                        updateProductCount(item._id, item.count - 1)
                       }
-                      disabled={item.count <= 1}
+                      disabled={item.count <= 1 || updatingIds[item._id]}
                     >
                       -
-                    </Button>
-                    <input
-                      type="number"
-                      value={item.count}
-                      readOnly
-                      className="bg-gray-50 w-14 border border-gray-300 text-gray-900 text-sm rounded-lg block px-2.5 py-1 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                    />
-                    <Button
-                      className="inline-flex items-center justify-center h-6 w-6 p-1 ms-3 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-full"
+                    </button>
+                    <div className="mx-2 w-14 text-center border rounded-md h-8 flex items-center justify-center">
+                      {updatingIds[item._id] ? (
+                        <i className="fas fa-spinner fa-spin text-gray-500 text-sm" />
+                      ) : (
+                        <span>{item.count}</span>
+                      )}
+                    </div>
+                    <button
+                      className="h-6 w-6 flex items-center justify-center text-gray-700 border border-gray-300 rounded-full bg-white disabled:opacity-50"
                       onClick={() =>
-                        updateProductCount(item.product._id, item.count += 1)
+                        updateProductCount(item._id, item.count + 1)
+                      }
+                      disabled={
+                        item.count >= item.product.quantity ||
+                        updatingIds[item._id]
                       }
                     >
                       +
-                    </Button>
+                    </button>
                   </div>
                 </td>
-                <td className="py-4 px-6 font-semibold text-gray-900 dark:text-white">
-                  {item.price} EGP
-                </td>
+                <td className="py-4 px-6">{item.price} EGP</td>
                 <td className="py-4 px-6">
                   <button
-                    onClick={() => deleteProduct(item.product._id)}
-                    className="font-medium text-red-600 dark:text-red-500 hover:underline"
+                    onClick={() => deleteProduct(item._id)}
+                    className="text-red-600 hover:underline"
                   >
                     Remove
                   </button>
@@ -138,34 +179,8 @@ return (
               </tr>
             ))}
           </tbody>
-          <tfoot className="text-xs text-gray-700 uppercase">
-            <tr>
-              <th colSpan={3} className="px-6 py-3">
-                total product price
-              </th>
-              <th colSpan={1} className="px-6 py-3">
-                {cart.totalCartPrice}
-              </th>
-            </tr>
-
-          </tfoot>
-
         </table>
-
-        <div className="flex justify-between mt-6">
-          <Button  className="bg-red-600 hover:bg-green-700 text-white"
-           onClick={clearCartData}
-           >
-            Clear Cart
-          </Button>
-          <Button className="bg-green-600 hover:bg-green-700 text-white"><Link href={`/checkoutsession/${cart._id}`}>
-          Checkout
-          </Link>
-            
-          </Button>
-        </div>
       </div>
-    )}
-  </div>
-);
+    </div>
+  );
 }

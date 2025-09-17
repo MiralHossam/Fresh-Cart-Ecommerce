@@ -59,7 +59,6 @@ export default function Login() {
       } else {
         toast.success("Login Success!", { position: "top-center" });
 
-        // ✅ Redirect to Home after successful login
         router.push("/");
       }
     } finally {

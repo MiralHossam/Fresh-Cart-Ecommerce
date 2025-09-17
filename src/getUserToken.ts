@@ -1,15 +1,24 @@
-'use server'
+"use server";
+
+import { getToken } from "next-auth/jwt";
 import { cookies } from "next/headers";
-import { decode } from "next-auth/jwt";
+import type { NextRequest } from "next/server";
 
-export async function getUserToken() {
-  const TokenSession = {process.env.Node_ENV === "production"? '__Secure-next-auth.session-token':'next-auth.session-token'}
-  const cookieData = await cookies();
-  const encryptedToken =
-    cookieData.get(TokenSession)?.value;
+export async function getUserToken(): Promise<string | null> {
+  const cookieStore = await cookies(); 
 
-  if (!encryptedToken) return null;
+  const req = {
+    cookies: Object.fromEntries(
+      (await cookieStore.getAll()).map(c => [c.name, c.value])
+    ),
+  } as unknown as NextRequest;
 
-  const data = await decode({ token: encryptedToken, secret: process.env.NEXTAUTH_SECRET! });
-  return data?.token;
+  const token = await getToken({
+    req,
+    secret: process.env.NEXTAUTH_SECRET,
+  });
+
+  if (!token || !("tokenData" in token)) return null;
+
+  return token.tokenData as string;
 }

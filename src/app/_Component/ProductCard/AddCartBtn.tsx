@@ -1,24 +1,35 @@
-'use client'
+"use client";
+
 import { AddProductToCart } from "@/CartAction/CartAction";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useState } from "react";
+import { useCount } from "@/types/CountProvider";
 
+interface AddCartBtnProps {
+  id: string;
+  onAdded?: () => void; 
+}
 
-export default function AddCartBtn({ id }: {id: string }) {
+export default function AddCartBtn({ id, onAdded }: AddCartBtnProps) {
   const [loading, setLoading] = useState(false);
+  const { refreshCounters } = useCount();
 
-  async function addProduct(id:string) {
-    try{
-          const data = await AddProductToCart(id)
-    if (data.status == 'success'){
-      toast.success(data.message)
-    }
-    else{
-      toast.success("Incorrect ID")
-    }
-    } catch(err){
-      toast.error("login first")
+  async function addProduct(id: string) {
+    setLoading(true);
+    try {
+      const data = await AddProductToCart(id);
+      if (data.status === "success") {
+        toast.success(data.message);
+        refreshCounters();
+        if (onAdded) onAdded(); 
+      } else {
+        toast.error("Incorrect product ID");
+      }
+    } catch {
+      toast.error("Please login first");
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -42,6 +53,3 @@ export default function AddCartBtn({ id }: {id: string }) {
     </Button>
   );
 }
-
-
-

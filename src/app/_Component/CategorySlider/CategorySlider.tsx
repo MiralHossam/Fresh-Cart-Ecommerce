@@ -13,7 +13,6 @@ export default function CategorySlider({ categories }: { categories: Category[] 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [itemsPerView, setItemsPerView] = useState(5);
 
-  // Handle responsive breakpoints
   useEffect(() => {
     const resize = () => {
       if (window.innerWidth < 640) setItemsPerView(2);
@@ -33,7 +32,6 @@ export default function CategorySlider({ categories }: { categories: Category[] 
   return (
     <section className="my-12 w-11/12 mx-auto relative">
       <div className="overflow-hidden relative rounded-xl">
-        {/* Slider Track */}
         <div
           className="flex transition-transform duration-500 ease-out"
           style={{
@@ -65,7 +63,6 @@ export default function CategorySlider({ categories }: { categories: Category[] 
           ))}
         </div>
 
-        {/* Arrows */}
         {categories.length > itemsPerView && (
           <>
             <button

@@ -39,7 +39,7 @@ export default function ResetPassword() {
       newPassword: "",
     },
     resolver: zodResolver(SchemaResetPassword),
-    mode: "onChange", // ✅ live validation
+    mode: "onChange", 
   })
 
   async function handleResetPassword(values: z.infer<typeof SchemaResetPassword>) {

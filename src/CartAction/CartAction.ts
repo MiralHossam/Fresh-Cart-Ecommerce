@@ -1,90 +1,121 @@
-'use server'
+"use server";
+
 import { getUserToken } from "@/getUserToken";
-import { getSession } from "next-auth/react";
 import { CartData } from "@/types/cart.type";
 
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL!;
 
-export async function getCartData() {
-  const token: any = await getUserToken();
-  if (!token) {
-    throw new Error("Token error");
-  }
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/v1/cart`, {
-    headers: {
-      token: token,
-    },
+type ApiResponse<T = unknown> = {
+  status: string;
+  success: boolean;
+  message?: string;
+  data?: T;
+};
+
+export async function getCartData(): Promise<CartData> {
+  const token = await getUserToken();
+  if (!token) throw new Error("Token error");
+
+  const res = await fetch(`${BASE_URL}/api/v1/cart`, {
+    headers: { token: String(token) },
+    cache: "no-store",
   });
-  const data = await res.json();
-  return data;
-}
 
-export async function AddProductToCart(id: string) {
-  const token: any = await getUserToken(); 
-  if (!token) {
-    throw new Error("token error")
-  }
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/v1/cart`, {
+  return res.json();
+}
+export async function AddProductToCart(id: string): Promise<ApiResponse> {
+  const token = await getUserToken();
+  if (!token) throw new Error("Token error");
+
+  const res = await fetch(`${BASE_URL}/api/v1/cart`, {
     method: "POST",
-    body: JSON.stringify({ 
-      productId: id
-     }),
-     headers: {
-      token: token,
-      'Content-Type': 'application/json' 
-     }
+    body: JSON.stringify({ productId: id }),
+    headers: {
+      token: String(token),
+      "Content-Type": "application/json",
+    } as Record<string, string>,
+    cache: "no-store",
   });
-  const data = await res.json();
-  return data;
+
+  return res.json() as Promise<ApiResponse>;
 }
 
-export async function removeProduct(id: string){
-    const token: any = await getUserToken(); 
-  if (!token) {
-    throw new Error("token error")
-  }
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/v1/cart/${id}`, {
+export async function removeProduct(id: string): Promise<ApiResponse> {
+  const token = await getUserToken();
+  if (!token) throw new Error("Token error");
+
+  const res = await fetch(`${BASE_URL}/api/v1/cart/${id}`, {
     method: "DELETE",
     headers: {
-      token: token,
-     }
+      token: String(token),
+    } as Record<string, string>,
+    cache: "no-store",
   });
-  const data = await res.json();
-  return data;
 
+  return res.json() as Promise<ApiResponse>;
 }
 
-export async function clearCart(){
-    const token: any = await getUserToken(); 
-  if (!token) {
-    throw new Error("token error")
-  }
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/v1/cart`, {
+export async function clearCart(): Promise<ApiResponse> {
+  const token = await getUserToken();
+  if (!token) throw new Error("Token error");
+
+  const res = await fetch(`${BASE_URL}/api/v1/cart`, {
     method: "DELETE",
     headers: {
-      token: token,
-    }
+      token: String(token),
+    } as Record<string, string>,
+    cache: "no-store",
   });
-  const data = await res.json();
-  return data;
 
+  return res.json() as Promise<ApiResponse>;
 }
 
-export async function updateProductQuantity(id: string, count: number){
-    const token: any = await getUserToken(); 
-  if (!token) {
-    throw new Error("token error")
-  }
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/v1/cart/${id}`, {
-    method: "put",
-    body:JSON.stringify({
-      count: count
+export async function updateProductQuantity(
+  id: string,
+  count: number
+): Promise<ApiResponse> {
+  const token = await getUserToken();
+  if (!token) throw new Error("Token error");
+
+  const res = await fetch(`${BASE_URL}/api/v1/cart/${id}`, {
+    method: "PUT",
+    body: JSON.stringify({ count }),
+    headers: {
+      token: String(token),
+      "Content-Type": "application/json",
+    } as Record<string, string>,
+    cache: "no-store",
+  });
+
+  return res.json() as Promise<ApiResponse>;
+}
+
+type CheckoutDetails = {
+  shippingAddress: {
+    details: string;
+    phone: string;
+    city: string;
+  };
+};
+
+export async function checkoutPayment(
+  cartId: string,
+  details: CheckoutDetails
+): Promise<ApiResponse> {
+  const token = await getUserToken();
+  if (!token) throw new Error("Token error");
+
+  const res = await fetch(`${BASE_URL}/api/create-checkout-session`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      token: String(token),
+    } as Record<string, string>,
+    body: JSON.stringify({
+      cartId,
+      ...details,
     }),
-    headers: {
-      token: token,
-      'content-type': "application/json"
-     }
   });
-  const data = await res.json();
-  return data;
 
+  return res.json() as Promise<ApiResponse>;
 }
