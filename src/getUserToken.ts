@@ -6,6 +6,10 @@ import type { NextRequest } from "next/server";
 
 export async function getUserToken(): Promise<string | null> {
   const cookieStore = await cookies(); 
+  const authToken =
+    cookieStore.get("next-auth.session-token")?.value ||
+    cookieStore.get("__Secure-next-auth.session-token")?.value;
+  if (!authToken) return null;  
 
   const req = {
     cookies: Object.fromEntries(
